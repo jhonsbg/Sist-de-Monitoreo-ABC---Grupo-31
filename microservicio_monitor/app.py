@@ -1,7 +1,8 @@
 from microservicio_sensor import create_app
 from flask_restful import Resource, Api
-from flask import Flask
+from flask import Flask, request
 import json
+import requests
 import random
 from datetime import datetime
 
@@ -12,7 +13,7 @@ app_context.push()
 api = Api(app)
 api.init_app(app)
 
-class Sensor(Resource):
+class Monitor(Resource):
 
     def get(self):              
         respuesta =random.choice([True, False]) 
@@ -25,8 +26,20 @@ class Sensor(Resource):
             file.write(",") 
             file.write(respuesta_string) 
             file.write("\n")
-        #return json.dumps(respuesta)   
-        return {'Estado': respuesta}    
+        return json.dumps(respuesta)   
+
+    def post(self):
+        content = requests.get('http://127.0.0.1:5001/sensor')
+        
+        
+        if content.status_code == 404:
+            return content.json(),404
+        else:
+            sensor = content.json()
+            sensor["Estado"] = request.json["Estado"]
+            args = (sensor,)
+            
+            return json.dumps(sensor)    
 
     
-api.add_resource(Sensor, '/sensor')
+api.add_resource(Monitor, '/monitoreo')
