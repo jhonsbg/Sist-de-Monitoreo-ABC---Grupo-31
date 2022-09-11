@@ -15,8 +15,12 @@ api.init_app(app)
 
 class Monitor(Resource):
 
+    def get(self):
+        for i in range(0,1000,2):
+            self.post()
+
     def post(self):
-        
+
         mensaje_respuesta = ""
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S") 
