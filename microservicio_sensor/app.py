@@ -25,7 +25,6 @@ class Sensor(Resource):
             file.write(",") 
             file.write(respuesta_string) 
             file.write("\n")
-        #return json.dumps(respuesta)   
         return {'Estado': respuesta}    
 
     
