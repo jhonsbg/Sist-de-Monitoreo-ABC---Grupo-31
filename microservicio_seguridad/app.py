@@ -30,7 +30,7 @@ class Login(Resource):
         filename = 'historico_acceso.csv'
 
         claims = get_jwt()
-        if claims['Rol'] == 'Operador':
+        if claims['rol'] == 'Operador':
             respuesta_string = 'Alarma Activa 1'
             with open(filename, 'a', newline="") as file:
                 file.write(dt_string)
