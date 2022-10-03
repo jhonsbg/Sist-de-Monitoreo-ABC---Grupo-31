@@ -24,12 +24,27 @@ class Login(Resource):
 
     @jwt_required()
     def get(self):
+
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        filename = 'historico_acceso.csv'
+
         claims = get_jwt()
         if claims['Rol'] == 'Operador':
             respuesta_string = 'Alarma Activa 1'
+            with open(filename, 'a', newline="") as file:
+                file.write(dt_string)
+                file.write(",")
+                file.write("True")
+                file.write("\n")
             return {'dashboard': respuesta_string}
         else:
             respuesta_string = 'No posee permisos suficientes para ver esta notificación'
+            with open(filename, 'a', newline="") as file:
+                file.write(dt_string)
+                file.write(",")
+                file.write("False")
+                file.write("\n")
             return {'dashboard': respuesta_string}
 
     def post(self):
