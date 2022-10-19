@@ -4,6 +4,19 @@ from flask import request, send_file
 from datetime import datetime
 from ..modelos import db,Upload
 from io import BytesIO
+import json
+import base64
+import pickle
+import pathlib
+
+import os
+from flask import Flask, render_template, redirect, flash, request, send_from_directory
+from werkzeug.utils import secure_filename
+
+
+app = Flask(__name__)
+app.config['UPLOADS_FOLDER'] = 'uploads/images/'
+app.config["UPLOAD_FOLDER_RAW"] = 'uploads/images/prueba'
 
 
 class Prueba(Resource):    
@@ -15,17 +28,22 @@ class Prueba(Resource):
         newformat = request.form["newFormat"]
         print("El nuevo formato es {}".format(newformat))
         print("El typo de archivo es {}".format(myother))
+        
         if newformat == 'ogg' or newformat == 'mp3' or newformat == 'wav':
          print(type(myother))
          nombre = myother.filename
          if nombre.endswith('.mp3') or nombre.endswith('.wav') or nombre.endswith('.ogg'):
             print("El titulo del archivo es {}".format(nombre))
             content = request.files['file'].read()
-            myother.save(nombre,buffer_size=16384)
+            #myother.save(nombre,buffer_size=16384)            
+            filename = secure_filename(myother.filename)
+            myother.save(os.path.join(app.config['UPLOADS_FOLDER'], filename))
             mydate = datetime.utcnow()
             mystatus = "uploaded"
             ## Guardar la info en BD
             upload = Upload(filename=nombre,data = content,status=mystatus,date=mydate)
+            with open('ejemplo.ogg','wb') as f:
+               pickle.dump(content,f,protocol=pickle.HIGHEST_PROTOCOL)
             db.session.add(upload)
             db.session.commit()
             ##
@@ -41,10 +59,32 @@ class Descarga(Resource):
    def get(self,filename):
         descarga = Upload.query.filter_by(filename=filename).first()
         print(type(descarga))
+        with open('ejemplo.mp3','rb') as f:
+         archivo2 = pickle.load(f)
+        print(type(archivo2)) 
         if type(descarga) != NoneType:
          print(type(descarga))
-         archivo =  send_file(BytesIO(descarga.data),download_name=filename,as_attachment=True)
-         print(type(archivo))
+         #archivo =  send_file(BytesIO(descarga.data),download_name=filename,as_attachment=True)
+         archivo =  send_file(BytesIO(archivo2),download_name=filename,as_attachment=True)
+         print(type(archivo))         
          return archivo
         else:
          return {"mensaje": "Archivo no encontrado"},404
+
+class Descarga2(Resource):
+
+   def get(self,filename):
+      try:
+         return send_from_directory(app.config['UPLOADS_FOLDER'], filename)
+      except Exception as e:
+         return {"mensaje": "Archivo {} no existe".format(filename)},404 
+   
+
+class Descarga3(Resource):
+
+   def post(self):
+      myfile = request.files["file"]
+      originalFileExtension = myfile.filename.split(".")[-1].lower()      
+      filename = secure_filename(myfile.filename)
+      myfile.save(os.path.join(app.config["UPLOADS_FOLDER"], filename))     
+      return {"mensaje": "cargue archivo {} exitoso".format(filename)}

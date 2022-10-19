@@ -1,7 +1,7 @@
 from microservicios_3 import create_app
 from flask_restful import Api
 from .modelos import db
-from .vistas import Prueba,Descarga
+from .vistas import Prueba,Descarga, Descarga2, Descarga3
 from flask_sqlalchemy import SQLAlchemy
 
 app = create_app('default')
@@ -15,3 +15,5 @@ db.create_all()
 
 api.add_resource(Prueba, '/api/tasks')
 api.add_resource(Descarga, '/api/files/<string:filename>')
+api.add_resource(Descarga2, '/api/<string:filename>')
+api.add_resource(Descarga3, '/api/example')
